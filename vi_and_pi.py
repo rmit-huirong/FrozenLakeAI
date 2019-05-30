@@ -1,6 +1,12 @@
 ### MDP Value Iteration and Policy Iteration
 ### Acknowledgement: start-up codes were adapted with permission from Prof. Emma Brunskill of Stanford University
 
+"""
+s3615907 Huirong Huang
+s3609499 Chun Shiong Low
+"""
+
+
 import numpy as np
 import gym
 import time
