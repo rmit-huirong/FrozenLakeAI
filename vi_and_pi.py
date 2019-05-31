@@ -6,7 +6,6 @@ s3615907 Huirong Huang
 s3609499 Chun Shiong Low
 """
 
-
 import numpy as np
 import gym
 import time
@@ -63,6 +62,36 @@ def policy_evaluation(P, nS, nA, policy, gamma=0.9, tol=1e-3):
 	############################
 	# YOUR IMPLEMENTATION HERE #
 
+	policy[0] = 2
+	policy[1] = 2
+	policy[2] = 1
+	policy[6] = 1
+	policy[10] = 1
+	policy[14] = 2
+
+	probability_index = 0
+	nextstate_index = 1
+	reward_index = 2
+	terminal_index = 3
+
+	i = 0
+
+	print("policy", policy)
+	while i < 5:
+
+		pre_v = np.copy(value_function)
+		print("before: ", value_function)
+		for state in range(nS):
+			probability = P[state][policy[state]][0][probability_index]
+			nextstate = P[state][policy[state]][0][nextstate_index]
+			reward = P[state][policy[state]][0][reward_index]
+			terminal = P[state][policy[state]][0][terminal_index]
+
+			# V(s) 				  = T(s, pi(s, π(s), s') *         [(R(s, π(s), s')				   + γ 	   * V(s')]
+			value_function[state] = probability * (reward + gamma * pre_v[nextstate])
+
+		print("after: ", value_function)
+		i = i + 1
 
 	############################
 	return value_function
@@ -122,6 +151,8 @@ def policy_iteration(P, nS, nA, gamma=0.9, tol=10e-3):
 	############################
 	# YOUR IMPLEMENTATION HERE #
 
+	policy = np.random.randint(0, 4, nS)
+	policy_evaluation(P, nS, nA, policy, gamma, tol)
 
 	############################
 	return value_function, policy
@@ -196,11 +227,9 @@ if __name__ == "__main__":
 	print("\n" + "-"*25 + "\nBeginning Policy Iteration\n" + "-"*25)
 
 	V_pi, p_pi = policy_iteration(env.P, env.nS, env.nA, gamma=0.9, tol=1e-3)
-	render_single(env, p_pi, 100)
-
-	print("\n" + "-"*25 + "\nBeginning Value Iteration\n" + "-"*25)
-
-	V_vi, p_vi = value_iteration(env.P, env.nS, env.nA, gamma=0.9, tol=1e-3)
-	render_single(env, p_vi, 100)
-
-
+	render_single(env, p_pi, 50)
+	#
+	# print("\n" + "-"*25 + "\nBeginning Value Iteration\n" + "-"*25)
+	#
+	# V_vi, p_vi = value_iteration(env.P, env.nS, env.nA, gamma=0.9, tol=1e-3)
+	# render_single(env, p_vi, 100)
