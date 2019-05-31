@@ -70,28 +70,35 @@ def policy_evaluation(P, nS, nA, policy, gamma=0.9, tol=1e-3):
 	policy[14] = 2
 
 	probability_index = 0
-	nextstate_index = 1
+	next_state_index = 1
 	reward_index = 2
 	terminal_index = 3
 
-	i = 0
-
-	print("policy", policy)
-	while i < 5:
-
-		pre_v = np.copy(value_function)
+	# print("policy", policy)
+	while True:
+		pre_value_function = np.copy(value_function)
 		print("before: ", value_function)
-		for state in range(nS):
-			probability = P[state][policy[state]][0][probability_index]
-			nextstate = P[state][policy[state]][0][nextstate_index]
-			reward = P[state][policy[state]][0][reward_index]
-			terminal = P[state][policy[state]][0][terminal_index]
-
-			# V(s) 				  = T(s, pi(s, π(s), s') *         [(R(s, π(s), s')				   + γ 	   * V(s')]
-			value_function[state] = probability * (reward + gamma * pre_v[nextstate])
-
+		value_function = np.zeros(nS)
+		abs_diff_array = []
+		for current_state in range(nS):
+			for i in range(len(P[current_state][policy[current_state]])):
+				p_property = P[current_state][policy[current_state]][i]
+				probability = p_property[probability_index]
+				next_state = p_property[next_state_index]
+				reward = p_property[reward_index]
+				terminal = p_property[terminal_index]
+				# V(s) = sum(T(s, π(s), s') * ((R(s, π(s), s') + γ * V(s')))
+				value_function[current_state] += probability * (reward + gamma * pre_value_function[next_state])
+			abs_diff = abs(value_function[current_state] - pre_value_function[current_state])
+			abs_diff_array.append(abs_diff)
+		print("abs_diff: ", abs_diff_array)
+		max_abs_diff = max(abs_diff_array)
+		print("max_abs_diff: ", max_abs_diff)
 		print("after: ", value_function)
-		i = i + 1
+		print("--------------------------------------------------------------------------------------------")
+		if max_abs_diff < tol:
+			print("Converged!")
+			break
 
 	############################
 	return value_function
