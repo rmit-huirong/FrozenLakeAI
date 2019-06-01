@@ -203,8 +203,6 @@ def policy_iteration(P, nS, nA, gamma=0.9, tol=10e-3):
     # generate random policy using numPy's randint function
     policy = np.random.randint(0, action_count, nS)
 
-    iteration = 1
-
     # policy iterations
     while True:
 
@@ -216,18 +214,10 @@ def policy_iteration(P, nS, nA, gamma=0.9, tol=10e-3):
 
         # check if the policy converged, if yes, stop the iteration
         if np.all(improved_policy == policy):
-            print("Policy iterations: ", iteration)
             break
 
         # update previous policy
         policy = improved_policy
-
-        iteration += 1
-
-    print("P_value_function:")
-    print(value_function)
-    print("P_policy:")
-    print(policy)
 
     ############################
     return value_function, policy
@@ -259,8 +249,6 @@ def value_iteration(P, nS, nA, gamma=0.9, tol=1e-3):
     probability_index = 0
     next_state_index = 1
     reward_index = 2
-
-    iteration = 1
 
     # loop until the iteration reaches the tolerance
     while True:
@@ -309,14 +297,7 @@ def value_iteration(P, nS, nA, gamma=0.9, tol=1e-3):
 
         # check if the maximum of absolute difference reached the tolerance, if yes, stop the iteration
         if max_abs_diff < tol:
-            print("Value iterations: ", iteration)
             break
-        iteration += 1
-
-    print("V_value_function:")
-    print(value_function)
-    print("V_policy:")
-    print(policy)
 
     ############################
     return value_function, policy
@@ -364,9 +345,9 @@ if __name__ == "__main__":
     print("\n" + "-"*25 + "\nBeginning Policy Iteration\n" + "-"*25)
 
     V_pi, p_pi = policy_iteration(env.P, env.nS, env.nA, gamma=0.9, tol=1e-3)
-    # render_single(env, p_pi, 100)
+    render_single(env, p_pi, 100)
 
     print("\n" + "-"*25 + "\nBeginning Value Iteration\n" + "-"*25)
 
     V_vi, p_vi = value_iteration(env.P, env.nS, env.nA, gamma=0.9, tol=1e-3)
-    # render_single(env, p_vi, 100)
+    render_single(env, p_vi, 100)
