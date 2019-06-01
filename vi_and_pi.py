@@ -244,6 +244,73 @@ def value_iteration(P, nS, nA, gamma=0.9, tol=1e-3):
     ############################
     # YOUR IMPLEMENTATION HERE #
 
+    # index of P_property
+    probability_index = 0
+    next_state_index = 1
+    reward_index = 2
+    terminal_index = 3
+
+    # loop until the iteration reaches the tolerance
+    while True:
+        # make a copy of the previous value function
+        pre_value_function = np.copy(value_function)
+
+        # instantiate value function
+        value_function = np.zeros(nS)
+
+        # instantiate absolute difference between the new value function and old value function of the current state
+        abs_diff_array = np.zeros(nS)
+
+        # loop through all states
+        for current_state in range(nS):
+
+            # specify the current action of the given state applying given policy
+            current_action = policy[current_state]
+
+            # loop through all probabilities of a given state and action in a stochastic environment
+            for i in range(len(P[current_state][current_action])):
+                P_property = P[current_state][current_action][i]
+
+                probability = P_property[probability_index]
+                next_state = P_property[next_state_index]
+                reward = P_property[reward_index]
+
+                # V(s) = sum(T(s, π(s), s') * ((R(s, π(s), s') + γ * V(s')))
+                value_function[current_state] += probability * (reward + gamma * pre_value_function[next_state])
+
+            # calculate the absolute difference between the new and old value function of the current state
+            abs_diff = np.abs(value_function[current_state] - pre_value_function[current_state])
+            abs_diff_array[current_state] = abs_diff
+
+            # find out the maximum among the absolute difference array
+        max_abs_diff = max(abs_diff_array)
+
+        # check if the maximum of absolute difference reached the tolerance, if yes, stop the iteration
+        if max_abs_diff < tol:
+            break
+
+            # loop through all states
+        for current_state in range(nS):
+
+            # instantiate Q_value_function
+            Q_value_function = np.zeros(nA)
+
+            # loop through all actions of a given state
+            for current_action in range(nA):
+
+                # loop through all probabilities of a given state and action in a stochastic environment
+                for i in range(len(P[current_state][current_action])):
+                    P_property = P[current_state][current_action][i]
+
+                    probability = P_property[probability_index]
+                    next_state = P_property[next_state_index]
+                    reward = P_property[reward_index]
+
+                    # Q(s, a) = sum(T(s, a, s') * ((R(s, a, s') + γ * V(s')))
+                    Q_value_function[current_action] += probability * (reward + gamma * value_from_policy[next_state])
+
+            # π*(s) = argmax(Q(s, a))
+            new_policy[current_state] = np.argmax(Q_value_function)
 
     ############################
     return value_function, policy
