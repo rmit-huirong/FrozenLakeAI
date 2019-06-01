@@ -74,8 +74,6 @@ def policy_evaluation(P, nS, nA, policy, gamma=0.9, tol=1e-3):
         # make a copy of the previous value function
         pre_value_function = np.copy(value_function)
 
-        print("before: ", value_function)
-
         # instantiate value function
         value_function = np.zeros(nS)
 
@@ -91,32 +89,24 @@ def policy_evaluation(P, nS, nA, policy, gamma=0.9, tol=1e-3):
             # loop through all probabilities of a given state and action in a stochastic environment
             for i in range(len(P[current_state][current_action])):
 
-                p_property = P[current_state][current_action][i]
+                P_property = P[current_state][current_action][i]
 
-                probability = p_property[probability_index]
-                next_state = p_property[next_state_index]
-                reward = p_property[reward_index]
-                terminal = p_property[terminal_index]
+                probability = P_property[probability_index]
+                next_state = P_property[next_state_index]
+                reward = P_property[reward_index]
 
                 # V(s) = sum(T(s, π(s), s') * ((R(s, π(s), s') + γ * V(s')))
                 value_function[current_state] += probability * (reward + gamma * pre_value_function[next_state])
 
             # calculate the absolute difference between the new and old value function of the current state
-            abs_diff = abs(value_function[current_state] - pre_value_function[current_state])
+            abs_diff = np.abs(value_function[current_state] - pre_value_function[current_state])
             abs_diff_array[current_state] = abs_diff
-
-        print("abs_diff: ", abs_diff_array)
 
         # find out the maximum among the absolute difference array
         max_abs_diff = max(abs_diff_array)
 
-        print("max_abs_diff: ", max_abs_diff)
-        print("after: ", value_function)
-        print("-------------------------------------------------------------------------------------------------------")
-
         # check if the maximum of absolute difference reached the tolerance, if yes, stop the iteration
         if max_abs_diff < tol:
-            print("Converged!")
             break
 
     ############################
@@ -171,15 +161,12 @@ def policy_improvement(P, nS, nA, value_from_policy, policy, gamma=0.9):
                 probability = P_property[probability_index]
                 next_state = P_property[next_state_index]
                 reward = P_property[reward_index]
-                terminal = P_property[terminal_index]
 
                 # Q(s, a) = sum(T(s, a, s') * ((R(s, a, s') + γ * V(s')))
                 Q_value_function[current_action] += probability * (reward + gamma * value_from_policy[next_state])
 
         # π*(s) = argmax(Q(s, a))
         new_policy[current_state] = np.argmax(Q_value_function)
-
-        print("new policy during improvement: ", new_policy)
 
     ############################
     return new_policy
@@ -215,20 +202,8 @@ def policy_iteration(P, nS, nA, gamma=0.9, tol=10e-3):
     # generate random policy using numPy's randint function
     policy = np.random.randint(0, action_count, nS)
 
-    # an example of "optimal" policy
-    # policy[0] = 2
-    # policy[1] = 2
-    # policy[2] = 1
-    # policy[6] = 1
-    # policy[10] = 1
-    # policy[14] = 2
-
-    print("policy: ", policy)
-    print("-----------------------------------------------------------------------------------------------------------")
-
-    # maximum amount of applying policy iterations
-    maximum_iteration = 500
-    for i in range(maximum_iteration):
+    # policy iterations
+    while True:
 
         # get the value function from given policy evaluation
         value_function = policy_evaluation(P, nS, nA, policy, gamma, tol)
@@ -236,13 +211,8 @@ def policy_iteration(P, nS, nA, gamma=0.9, tol=10e-3):
         # get improved policy based on the value functions from given policy
         improved_policy = policy_improvement(P, nS, nA, value_function, policy, gamma)
 
-        print("value_function: ", value_function)
-        print("new policy after improvement: ", improved_policy)
-        print("-------------------------------------------------------------------------------------------------------")
-
         # check if the policy converged, if yes, stop the iteration
         if np.all(improved_policy == policy):
-            print("Policy iterations have finished!")
             break
 
         # update previous policy
@@ -315,8 +285,8 @@ def render_single(env, policy, max_steps=100):
 if __name__ == "__main__":
 
     # comment/uncomment these lines to switch between deterministic/stochastic environments
-    env = gym.make("Deterministic-4x4-FrozenLake-v0")
-    # env = gym.make("Stochastic-4x4-FrozenLake-v0")
+    # env = gym.make("Deterministic-4x4-FrozenLake-v0")
+    env = gym.make("Stochastic-4x4-FrozenLake-v0")
 
     print("\n" + "-"*25 + "\nBeginning Policy Iteration\n" + "-"*25)
 
