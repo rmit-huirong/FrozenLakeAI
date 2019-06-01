@@ -66,7 +66,6 @@ def policy_evaluation(P, nS, nA, policy, gamma=0.9, tol=1e-3):
     probability_index = 0
     next_state_index = 1
     reward_index = 2
-    terminal_index = 3
 
     # loop until the iteration reaches the tolerance
     while True:
@@ -142,7 +141,9 @@ def policy_improvement(P, nS, nA, value_from_policy, policy, gamma=0.9):
     probability_index = 0
     next_state_index = 1
     reward_index = 2
-    terminal_index = 3
+
+    # make a copy of the previous policy
+    new_policy = np.copy(policy)
 
     # loop through all states
     for current_state in range(nS):
@@ -202,6 +203,8 @@ def policy_iteration(P, nS, nA, gamma=0.9, tol=10e-3):
     # generate random policy using numPy's randint function
     policy = np.random.randint(0, action_count, nS)
 
+    iteration = 1
+
     # policy iterations
     while True:
 
@@ -213,10 +216,18 @@ def policy_iteration(P, nS, nA, gamma=0.9, tol=10e-3):
 
         # check if the policy converged, if yes, stop the iteration
         if np.all(improved_policy == policy):
+            print("Policy iterations: ", iteration)
             break
 
         # update previous policy
         policy = improved_policy
+
+        iteration += 1
+
+    print("P_value_function:")
+    print(value_function)
+    print("P_policy:")
+    print(policy)
 
     ############################
     return value_function, policy
@@ -248,10 +259,12 @@ def value_iteration(P, nS, nA, gamma=0.9, tol=1e-3):
     probability_index = 0
     next_state_index = 1
     reward_index = 2
-    terminal_index = 3
+
+    iteration = 1
 
     # loop until the iteration reaches the tolerance
     while True:
+
         # make a copy of the previous value function
         pre_value_function = np.copy(value_function)
 
@@ -262,34 +275,6 @@ def value_iteration(P, nS, nA, gamma=0.9, tol=1e-3):
         abs_diff_array = np.zeros(nS)
 
         # loop through all states
-        for current_state in range(nS):
-
-            # specify the current action of the given state applying given policy
-            current_action = policy[current_state]
-
-            # loop through all probabilities of a given state and action in a stochastic environment
-            for i in range(len(P[current_state][current_action])):
-                P_property = P[current_state][current_action][i]
-
-                probability = P_property[probability_index]
-                next_state = P_property[next_state_index]
-                reward = P_property[reward_index]
-
-                # V(s) = sum(T(s, π(s), s') * ((R(s, π(s), s') + γ * V(s')))
-                value_function[current_state] += probability * (reward + gamma * pre_value_function[next_state])
-
-            # calculate the absolute difference between the new and old value function of the current state
-            abs_diff = np.abs(value_function[current_state] - pre_value_function[current_state])
-            abs_diff_array[current_state] = abs_diff
-
-            # find out the maximum among the absolute difference array
-        max_abs_diff = max(abs_diff_array)
-
-        # check if the maximum of absolute difference reached the tolerance, if yes, stop the iteration
-        if max_abs_diff < tol:
-            break
-
-            # loop through all states
         for current_state in range(nS):
 
             # instantiate Q_value_function
@@ -307,10 +292,31 @@ def value_iteration(P, nS, nA, gamma=0.9, tol=1e-3):
                     reward = P_property[reward_index]
 
                     # Q(s, a) = sum(T(s, a, s') * ((R(s, a, s') + γ * V(s')))
-                    Q_value_function[current_action] += probability * (reward + gamma * value_from_policy[next_state])
+                    Q_value_function[current_action] += probability * (reward + gamma * pre_value_function[next_state])
 
             # π*(s) = argmax(Q(s, a))
-            new_policy[current_state] = np.argmax(Q_value_function)
+            policy[current_state] = np.argmax(Q_value_function)
+
+            # V(s) = max(Q(s, a))
+            value_function[current_state] = np.max(Q_value_function)
+
+            # calculate the absolute difference between the new and old value function of the current state
+            abs_diff = np.abs(value_function[current_state] - pre_value_function[current_state])
+            abs_diff_array[current_state] = abs_diff
+
+        # find out the maximum among the absolute difference array
+        max_abs_diff = max(abs_diff_array)
+
+        # check if the maximum of absolute difference reached the tolerance, if yes, stop the iteration
+        if max_abs_diff < tol:
+            print("Value iterations: ", iteration)
+            break
+        iteration += 1
+
+    print("V_value_function:")
+    print(value_function)
+    print("V_policy:")
+    print(policy)
 
     ############################
     return value_function, policy
@@ -358,9 +364,9 @@ if __name__ == "__main__":
     print("\n" + "-"*25 + "\nBeginning Policy Iteration\n" + "-"*25)
 
     V_pi, p_pi = policy_iteration(env.P, env.nS, env.nA, gamma=0.9, tol=1e-3)
-    render_single(env, p_pi, 100)
-    #
-    # print("\n" + "-"*25 + "\nBeginning Value Iteration\n" + "-"*25)
-    #
-    # V_vi, p_vi = value_iteration(env.P, env.nS, env.nA, gamma=0.9, tol=1e-3)
+    # render_single(env, p_pi, 100)
+
+    print("\n" + "-"*25 + "\nBeginning Value Iteration\n" + "-"*25)
+
+    V_vi, p_vi = value_iteration(env.P, env.nS, env.nA, gamma=0.9, tol=1e-3)
     # render_single(env, p_vi, 100)
